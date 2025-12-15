@@ -21,7 +21,7 @@
   "scripts": {
     "installation": {
       "script": "#!/bin/bash\nset -euo pipefail\n\n[ -z \"${REPO_URL:-}\" ] && echo \"REPO_URL is required\" && exit 1\n[ -z \"${REG_TOKEN:-}\" ] && echo \"REG_TOKEN is required\" && exit 1\n\nRUNNER_VERSION=\"2.329.0\"\nRUNNER_SHA256=\"194f1e1e4bd02f80b7e9633fc546084d8d4e19f3928a324d512ea53430102e1d\"\n\nmkdir -p /mnt/server/actions-runner\ncd /mnt/server/actions-runner\n\ncurl -fsSL -o runner.tar.gz https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz\necho \"${RUNNER_SHA256}  runner.tar.gz\" | sha256sum -c -\n\ntar xzf runner.tar.gz\nchown -R container:container /mnt/server/actions-runner\n",
-      "container": "ghcr.io/avaloncs/github-actions-runner:latest",
+      "container": "ghcr.io/avaloncs/ubuntu:latest",
       "entrypoint": "/bin/bash"
     }
   },
