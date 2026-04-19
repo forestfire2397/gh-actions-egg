@@ -13,7 +13,7 @@
         "ghcr.io\/avaloncs\/ubuntu:latest": "ghcr.io\/avaloncs\/ubuntu:latest"
     },
     "file_denylist": [],
-    "startup": "cd \/home\/container\/actions-runner && [ ! -f .runner ] && .\/config.sh --unattended --url \"$REPO_URL\" --token \"$REG_TOKEN\" --work _work --replace || true && exec bash run.sh",
+    "startup": "cd \/home\/container\/actions-runner && { [ -f .runner ] || .\/config.sh --unattended --url \"$REPO_URL\" --token \"$REG_TOKEN\" --work _work --replace; } && exec bash run.sh",
     "config": {
         "files": "{}",
         "startup": "{\"done\": \"Listening for Jobs\"}",
