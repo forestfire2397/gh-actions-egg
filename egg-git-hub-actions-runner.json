@@ -13,7 +13,7 @@
         "ghcr.io\/avaloncs\/ubuntu:latest": "ghcr.io\/avaloncs\/ubuntu:latest"
     },
     "file_denylist": [],
-    "startup": "getent passwd container >\/dev\/null 2>&1 || useradd -M -s \/bin\/bash container; su -s \/bin\/bash container -c 'cd \/home\/container\/actions-runner && [ ! -f .runner ] && .\/config.sh --unattended --url \\\"$REPO_URL\\\" --token \\\"$REG_TOKEN\\\" --work _work --replace || true && exec bash run.sh'",
+    "startup": "cd \/home\/container\/actions-runner && [ ! -f .runner ] && .\/config.sh --unattended --url \"$REPO_URL\" --token \"$REG_TOKEN\" --work _work --replace || true && exec bash run.sh",
     "config": {
         "files": "{}",
         "startup": "{\"done\": \"Listening for Jobs\"}",
@@ -22,7 +22,7 @@
     },
     "scripts": {
         "installation": {
-            "script": "#!\/bin\/bash\r\n\r\nset -euo pipefail\r\n\r\necho \"[install] start\"\r\n\r\n[ -z \"${REPO_URL:-}\" ] && echo \"REPO_URL required\" && exit 1\r\n[ -z \"${REG_TOKEN:-}\" ] && echo \"REG_TOKEN required\" && exit 1\r\n\r\nRV=\"2.329.0\"\r\nSH=\"194f1e1e4bd02f80b7e9633fc546084d8d4e19f3928a324d512ea53430102e1d\"\r\n\r\n# Create the container user if it does not exist\r\nif ! getent passwd container > \/dev\/null 2>&1; then\r\n    echo \"[install] creating container user\"\r\n    useradd -M -s \/bin\/bash container\r\nfi\r\n\r\n# Skip re-download\/extract if the runner is already installed\r\nif [ -f \/mnt\/server\/actions-runner\/run.sh ]; then\r\n    echo \"[install] runner already installed, skipping download\"\r\n    chown -R container:container \/mnt\/server\/actions-runner\r\n    echo \"[install] done\"\r\n    exit 0\r\nfi\r\n\r\nmkdir -p \/mnt\/server\/actions-runner\r\ncd \/mnt\/server\/actions-runner\r\n\r\necho \"[install] downloading\"\r\ncurl -fsSL -o runner.tar.gz https:\/\/github.com\/actions\/runner\/releases\/download\/v${RV}\/actions-runner-linux-x64-${RV}.tar.gz\r\n\r\necho \"[install] verifying\"\r\necho \"${SH}  runner.tar.gz\" | sha256sum -c -\r\n\r\necho \"[install] extracting\"\r\ntar xzf runner.tar.gz\r\nrm -f runner.tar.gz\r\n\r\necho \"[install] chown\"\r\nchown -R container:container \/mnt\/server\/actions-runner\r\n\r\necho \"[install] done\"",
+            "script": "#!\/bin\/bash\r\n\r\nset -euo pipefail\r\n\r\necho \"[install] start\"\r\n\r\n[ -z \"${REPO_URL:-}\" ] && echo \"REPO_URL required\" && exit 1\r\n[ -z \"${REG_TOKEN:-}\" ] && echo \"REG_TOKEN required\" && exit 1\r\n\r\nRV=\"2.329.0\"\r\nSH=\"194f1e1e4bd02f80b7e9633fc546084d8d4e19f3928a324d512ea53430102e1d\"\r\n\r\n# Skip re-download\/extract if the runner is already installed\r\nif [ -f \/mnt\/server\/actions-runner\/run.sh ]; then\r\n    echo \"[install] runner already installed, skipping\"\r\n    exit 0\r\nfi\r\n\r\nmkdir -p \/mnt\/server\/actions-runner\r\ncd \/mnt\/server\/actions-runner\r\n\r\necho \"[install] downloading\"\r\ncurl -fsSL -o runner.tar.gz https:\/\/github.com\/actions\/runner\/releases\/download\/v${RV}\/actions-runner-linux-x64-${RV}.tar.gz\r\n\r\necho \"[install] verifying\"\r\necho \"${SH}  runner.tar.gz\" | sha256sum -c -\r\n\r\necho \"[install] extracting\"\r\ntar xzf runner.tar.gz\r\nrm -f runner.tar.gz\r\n\r\necho \"[install] done\"",
             "container": "ghcr.io\/avaloncs\/ubuntu:latest",
             "entrypoint": "\/bin\/bash"
         }
