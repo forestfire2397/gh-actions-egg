@@ -43,7 +43,7 @@ The egg is designed to be used with a **community-maintained Docker image**, all
 
 1. Open your **Pterodactyl Admin Panel**
 2. Navigate to **Nests → Import Egg**
-3. Import the provided `runner-egg.json`
+3. Import the provided `egg-git-hub-actions-runner.json`
 
 ---
 
