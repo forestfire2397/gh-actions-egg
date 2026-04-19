@@ -1,0 +1,50 @@
+name: Docker Validation
+
+on:
+  pull_request:
+    branches:
+      - Docker
+
+jobs:
+  lint:
+    name: Lint Dockerfile
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+  build:
+    name: Build image
+    runs-on: ubuntu-24.04
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t runner-image:${{ github.sha }} .
+
+  scan:
+    name: Security scan
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image for scanning
+        run: docker build -t runner-image:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          image-ref: runner-image:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
