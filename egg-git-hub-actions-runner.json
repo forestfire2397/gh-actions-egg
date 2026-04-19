@@ -13,7 +13,7 @@
         "ghcr.io\/avaloncs\/ubuntu:latest": "ghcr.io\/avaloncs\/ubuntu:latest"
     },
     "file_denylist": [],
-    "startup": "su -s \/bin\/bash container -c 'cd \/home\/container\/actions-runner && [ ! -f .runner ] && .\/config.sh --unattended --url \\\"$REPO_URL\\\" --token \\\"$REG_TOKEN\\\" --work _work --replace || true && exec bash run.sh'",
+    "startup": "cd \/home\/container\/actions-runner && { [ -f .runner ] || .\/config.sh --unattended --url \"$REPO_URL\" --token \"$REG_TOKEN\" --work _work --replace; } && exec bash run.sh",
     "config": {
         "files": "{}",
         "startup": "{\"done\": \"Listening for Jobs\"}",
@@ -22,7 +22,7 @@
     },
     "scripts": {
         "installation": {
-            "script": "#!\/bin\/bash\r\n\r\n# Configuraci\u00f3n: abortar inmediatamente si un comando falla (-e), \r\n# si se usa una variable no definida (-u), y fallar si alg\u00fan comando en una tuber\u00eda falla (-o pipefail).\r\nset -euo pipefail\r\n\r\necho \"[install] start\"\r\n\r\n# --- Validaci\u00f3n de Variables Requeridas ---\r\n# Verifica si las variables de entorno REPO_URL y REG_TOKEN est\u00e1n vac\u00edas. \r\n# Si lo est\u00e1n, imprime un error y sale con c\u00f3digo 1.\r\n\r\n# REPO_URL: URL del repositorio (por ejemplo, https:\/\/github.com\/OWNER\/REPO)\r\n[ -z \"${REPO_URL:-}\" ] && echo \"REPO_URL required\" && exit 1\r\n\r\n# REG_TOKEN: Token de registro del runner\r\n[ -z \"${REG_TOKEN:-}\" ] && echo \"REG_TOKEN required\" && exit 1\r\n\r\n# --- Definici\u00f3n de Variables ---\r\n# RV: Versi\u00f3n del runner de Actions\r\nRV=\"2.329.0\"\r\n\r\n# SH: Checksum SHA256 del archivo tar (para verificaci\u00f3n de integridad)\r\nSH=\"194f1e1e4bd02f80b7e9633fc546084d8d4e19f3928a324d512ea53430102e1d\"\r\n\r\n# --- Preparaci\u00f3n del Directorio ---\r\n\r\n# Crear el directorio de instalaci\u00f3n para el runner si no existe.\r\nmkdir -p \/mnt\/server\/actions-runner\r\n\r\n# Cambiar al directorio de instalaci\u00f3n.\r\ncd \/mnt\/server\/actions-runner\r\n\r\n# --- Descarga del Runner ---\r\n\r\necho \"[install] downloading\"\r\n\r\n# Descargar el archivo tar.gz del runner desde GitHub Releases.\r\n# -f: fallar silenciosamente en errores HTTP\r\n# -s: modo silencioso\r\n# -S: mostrar errores\r\n# -L: seguir redireccionamientos\r\n# -o: escribir la salida al archivo especificado\r\ncurl -fsSL -o runner.tar.gz -L https:\/\/github.com\/actions\/runner\/releases\/download\/v${RV}\/actions-runner-linux-x64-${RV}.tar.gz\r\n\r\n# --- Verificaci\u00f3n de Integridad ---\r\n\r\necho \"[install] verifying\"\r\n\r\n# Verificar el checksum SHA256 del archivo descargado.\r\n# sh: el checksum esperado se inyecta en 'sha256sum -c -' a trav\u00e9s de 'echo |'\r\necho \"${SH}  runner.tar.gz\" | sha256sum -c -\r\n\r\n# --- Extracci\u00f3n del Archivo ---\r\n\r\necho \"[install] extracting\"\r\n\r\n# Extraer el contenido del archivo tar.gz.\r\n# x: extraer\r\n# z: descomprimir con gzip\r\n# f: usar el archivo especificado\r\ntar xzf runner.tar.gz\r\n\r\n# --- Permisos de Archivo ---\r\n\r\necho \"[install] chown\"\r\n\r\n# Cambiar el propietario recursivamente del directorio del runner al usuario 'container' y grupo 'container'.\r\nchown -R container:container \/mnt\/server\/actions-runner\r\n\r\n# --- Finalizaci\u00f3n ---\r\n\r\necho \"[install] done\"",
+            "script": "#!\/bin\/bash\r\n\r\nset -euo pipefail\r\n\r\necho \"[install] start\"\r\n\r\n[ -z \"${REPO_URL:-}\" ] && echo \"REPO_URL required\" && exit 1\r\n[ -z \"${REG_TOKEN:-}\" ] && echo \"REG_TOKEN required\" && exit 1\r\n\r\nRV=\"2.329.0\"\r\nSH=\"194f1e1e4bd02f80b7e9633fc546084d8d4e19f3928a324d512ea53430102e1d\"\r\n\r\n# Skip re-download\/extract if the runner is already installed\r\nif [ -f \/mnt\/server\/actions-runner\/run.sh ]; then\r\n    echo \"[install] runner already installed, skipping\"\r\n    exit 0\r\nfi\r\n\r\nmkdir -p \/mnt\/server\/actions-runner\r\ncd \/mnt\/server\/actions-runner\r\n\r\necho \"[install] downloading\"\r\ncurl -fsSL -o runner.tar.gz https:\/\/github.com\/actions\/runner\/releases\/download\/v${RV}\/actions-runner-linux-x64-${RV}.tar.gz\r\n\r\necho \"[install] verifying\"\r\necho \"${SH}  runner.tar.gz\" | sha256sum -c -\r\n\r\necho \"[install] extracting\"\r\ntar xzf runner.tar.gz\r\nrm -f runner.tar.gz\r\n\r\necho \"[install] done\"",
             "container": "ghcr.io\/avaloncs\/ubuntu:latest",
             "entrypoint": "\/bin\/bash"
         }
@@ -40,7 +40,7 @@
         },
         {
             "name": "Registration Token",
-            "description": "GitHub runner registration token (from repo\/org settings).\"",
+            "description": "GitHub runner registration token (from repo\/org settings).",
             "env_variable": "REG_TOKEN",
             "default_value": "",
             "user_viewable": false,
